@@ -81,7 +81,7 @@ Tambahkan properti `GEMINI_API_KEY_2`, `GEMINI_API_KEY_3`, dan seterusnya. Bila 
 3. Buka **Settings > Pages**. Pada *Build and deployment*, pilih **Deploy from a branch**, Branch **main**, folder **/ (root)**, lalu **Save**.
 4. Tunggu 1–2 menit. Alamat situs muncul di halaman yang sama, misalnya `https://namaanda.github.io/kartu-ke-sheet/`.
 
-**Agar langsung jalan tanpa Pengaturan di HP**, sebelum mengunggah, buka `app.js` dan isi dua baris di bagian atas:
+**Wajib sebelum mengunggah:** aplikasi tidak punya halaman pengaturan, jadi alamat Apps Script dan PIN diisi langsung di `app.js`, pada dua baris di bagian atas:
 
 ```js
 const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/XXXX/exec';
@@ -93,8 +93,8 @@ Kedua nilai ini akan terlihat oleh siapa pun yang membuka situs, jadi orang lain
 ## Langkah 5 — Pakai di HP
 
 1. Buka alamat GitHub Pages di Chrome (Android) atau Safari (iPhone).
-2. Ketuk **Pengaturan**, tempel alamat `/exec`, isi PIN, lalu **Simpan** dan **Tes koneksi**. Harus muncul "Terhubung".
-3. Kembali, lalu ketuk **Kamera**. Jepret sisi **depan**, balik kartunya, lalu jepret sisi **belakang**. Aplikasi pindah sisi otomatis.
+2. Pilih **kategori** (dan sub-kategori untuk Healing).
+3. Ketuk **Kamera**. Jepret sisi **depan**, balik kartunya, lalu jepret sisi **belakang**. Aplikasi pindah sisi otomatis.
 4. Ketuk **Baca kartu**, periksa dan perbaiki hasilnya, lalu ketuk **Kirim ke Sheet**.
 5. Ketuk **Kartu baru** untuk kartu berikutnya.
 
@@ -118,7 +118,7 @@ Tips foto: letakkan kartu di permukaan polos, cukup terang, tanpa pantulan lampu
 - Setelah mengubah `Code.gs`, buat **versi baru** deployment (lihat Langkah 3).
 - Matikan ekstensi pemblokir iklan/privasi yang mungkin memblokir `script.google.com`.
 
-**"PIN salah"**: PIN di HP harus sama persis (huruf besar/kecil) dengan properti `PIN` di Apps Script.
+**"PIN di app.js tidak cocok"**: `DEFAULT_PIN` di `app.js` harus sama persis (huruf besar/kecil) dengan properti `PIN` di Apps Script. Setelah diperbaiki, unggah ulang `app.js`.
 
 **"API key Gemini di Apps Script salah"**: periksa properti `GEMINI_API_KEY`, pastikan tanpa spasi.
 
@@ -128,4 +128,4 @@ Tips foto: letakkan kartu di permukaan polos, cukup terang, tanpa pantulan lampu
 
 **Hasil baca kurang tepat**: foto ulang lebih dekat dan terang, atau perbaiki manual di kolom sebelum mengirim.
 
-**iPhone**: halaman yang dibuka dari ikon layar utama punya penyimpanan terpisah dari Safari, jadi isi Pengaturan sekali lagi di sana.
+**Masih tampil versi lama setelah unggah ulang**: tunggu 1–2 menit, lalu muat ulang halaman. Bila perlu, tutup tab dan buka lagi.

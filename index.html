@@ -17,8 +17,6 @@
   <symbol id="i-rl" viewBox="0 0 24 24"><path d="M3 4v6h6"/><path d="M3.5 10A9 9 0 1 1 6 18"/></symbol>
   <symbol id="i-rr" viewBox="0 0 24 24"><path d="M21 4v6h-6"/><path d="M20.5 10A9 9 0 1 0 18 18"/></symbol>
   <symbol id="i-del" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
-  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
-  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></symbol>
   <symbol id="i-shot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4" fill="currentColor"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
   <symbol id="i-read" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h13"/></symbol>
@@ -33,19 +31,14 @@
   <main id="viewMain">
     <header class="top">
       <h1><span class="dot" aria-hidden="true"></span>Kartu ke Sheet</h1>
-      <button type="button" class="ghost" id="btnOpenSettings">
-        <svg class="i" aria-hidden="true"><use href="#i-gear"/></svg>Pengaturan
-      </button>
     </header>
 
-    <p id="setupNotice" class="warn hidden" role="note">Aplikasi belum terhubung ke Google Sheet. Buka <strong>Pengaturan</strong> untuk mengisi alamat Apps Script dan PIN.</p>
-
     <section class="card" aria-labelledby="hCat" id="catCard">
-      <h2 id="hCat">1. Kategori kartu</h2>
-      <div class="chips" id="catChips" role="radiogroup" aria-labelledby="hCat"></div>
+      <h2 id="hCat"><label for="selCat" style="margin:0">1. Kategori kartu</label></h2>
+      <select id="selCat"></select>
       <div id="subWrap" class="hidden">
-        <p class="sub-title" id="hSub">Sub-kategori Healing</p>
-        <div class="chips" id="subChips" role="radiogroup" aria-labelledby="hSub"></div>
+        <label for="selSub" class="sub-title" id="hSub">Sub-kategori Healing</label>
+        <select id="selSub"></select>
       </div>
       <p class="hint" id="catHint" aria-live="polite">Pilih kategori sebelum memotret.</p>
     </section>
@@ -142,41 +135,8 @@
       <div id="sendStatus" class="status info" role="status" aria-live="polite"></div>
       <p class="hint"><a id="sheetLink" class="hidden" href="#" target="_blank" rel="noopener noreferrer"><svg class="i" aria-hidden="true" style="vertical-align:-4px"><use href="#i-sheet"/></svg> Buka Google Sheet</a></p>
     </section>
+    <p class="hint footnote">Foto dikirim ke Gemini versi gratis dan bisa dipakai Google untuk melatih model. Jangan gunakan untuk dokumen pribadi.</p>
   </main>
-
-  <!-- ============ PENGATURAN ============ -->
-  <div id="viewSettings" class="hidden" role="region" aria-labelledby="hSet">
-    <header class="top">
-      <button type="button" class="ghost" id="btnCloseSettings"><svg class="i" aria-hidden="true"><use href="#i-back"/></svg>Kembali</button>
-      <h1 id="hSet" tabindex="-1">Pengaturan</h1>
-    </header>
-
-    <section class="card">
-      <div class="field">
-        <label for="inpUrl">Alamat Web App Apps Script</label>
-        <input type="url" id="inpUrl" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://script.google.com/macros/s/.../exec">
-        <p class="hint" id="urlHint">Alamat yang berakhiran <code>/exec</code>, didapat saat Deploy di Apps Script.</p>
-      </div>
-      <div class="field">
-        <label for="inpPin">PIN</label>
-        <input type="password" id="inpPin" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="PIN yang sama dengan di Apps Script">
-        <p class="hint" id="pinState">Belum ada PIN tersimpan.</p>
-      </div>
-      <div class="row">
-        <button type="button" class="primary" id="btnSaveSettings">Simpan</button>
-        <button type="button" id="btnTest">Tes koneksi</button>
-      </div>
-      <div class="row" style="margin-top:8px">
-        <button type="button" class="danger" id="btnForget">Hapus data dari HP ini</button>
-      </div>
-      <div id="setStatus" class="status info" role="status" aria-live="polite"></div>
-    </section>
-
-    <section class="card">
-      <p class="hint" style="margin-top:0">API key Gemini tidak disimpan di HP maupun di situs ini. Key hanya ada di Script Properties Apps Script milik Anda. Langkah pemasangan ada di <code>README.md</code>.</p>
-      <p class="warn" style="margin-bottom:0"><strong>Perhatian:</strong> foto yang dikirim ke layanan gratis bisa dipakai penyedia untuk melatih model. Jangan gunakan untuk dokumen pribadi atau sensitif.</p>
-    </section>
-  </div>
 </div>
 
 <script src="app.js"></script>

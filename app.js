@@ -3,11 +3,10 @@
 
   /* =========================================================
    * KONFIGURASI TERTANAM
-   * Isi dua baris ini supaya aplikasi langsung jalan tanpa Pengaturan.
+   * Satu-satunya tempat mengatur koneksi aplikasi.
    * - DEFAULT_SCRIPT_URL : URL Web App Apps Script (berakhiran /exec)
    * - DEFAULT_PIN        : sama persis dengan properti PIN di Apps Script
    * Catatan: kedua nilai ini terlihat oleh siapa pun yang membuka situs.
-   * Nilai di Pengaturan HP (bila diisi) mengalahkan nilai di sini.
    * JANGAN PERNAH menaruh API key Gemini di file ini.
    * ========================================================= */
   const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYcFWDCmijyVArTNXMBvRAEsPllpjQrFJtXLtBZPpEd6R-DbnavW183oWP53OpJ-Wg/exec';
@@ -19,9 +18,11 @@
     set(k, v) { try { localStorage.setItem(k, v); return true; } catch { return false; } },
     del(k) { try { localStorage.removeItem(k); } catch {} }
   };
-  const K = { url: 'kartu.url', pin: 'kartu.pin', cat: 'kartu.kategori', sub: 'kartu.sub' };
-  const getUrl = () => (LS.get(K.url) || DEFAULT_SCRIPT_URL || '').trim();
-  const getPin = () => LS.get(K.pin) || DEFAULT_PIN || '';
+  const K = { cat: 'kartu.kategori', sub: 'kartu.sub' };
+  const getUrl = () => DEFAULT_SCRIPT_URL.trim();
+  const getPin = () => DEFAULT_PIN;
+  // Bersihkan alamat/PIN lama yang dulu disimpan lewat halaman Pengaturan
+  LS.del('kartu.url'); LS.del('kartu.pin');
 
   // Harus sama dengan CATEGORIES di apps-script/Code.gs
   const CATEGORIES = {
@@ -39,15 +40,13 @@
   /* ---------------- DOM ---------------- */
   const $ = id => document.getElementById(id);
   const el = {
-    viewMain: $('viewMain'), viewSettings: $('viewSettings'),
+    viewMain: $('viewMain'),
     slots: $('slots'), camView: $('camView'), camTitle: $('camTitle'), video: $('video'),
     slotTools: $('slotTools'), activeName: $('activeName'), imgBar: $('imgBar'),
     fileInput: $('fileInput'),
     btnRead: $('btnRead'), btnReadLabel: $('btnReadLabel'), btnStop: $('btnStop'), status: $('status'),
     fSurah: $('fSurah'), fAyat: $('fAyat'), fTerjemahan: $('fTerjemahan'), fInsight: $('fInsight'), fWhat: $('fWhat'),
-    btnSend: $('btnSend'), btnSendLabel: $('btnSendLabel'), sendStatus: $('sendStatus'), sheetLink: $('sheetLink'),
-    setupNotice: $('setupNotice'),
-    inpUrl: $('inpUrl'), inpPin: $('inpPin'), pinState: $('pinState'), setStatus: $('setStatus')
+    btnSend: $('btnSend'), btnSendLabel: $('btnSendLabel'), sendStatus: $('sendStatus'), sheetLink: $('sheetLink')
   };
   const FIELD_MAP = { namaSurah: 'fSurah', ayat: 'fAyat', terjemahan: 'fTerjemahan', insight: 'fInsight', whatToDo: 'fWhat' };
   const SIDE_NAME = { depan: 'Depan', belakang: 'Belakang' };
@@ -76,38 +75,23 @@
   const categoryReady = () => !!cat.kategori && (!needsSub() || !!cat.sub);
   const sheetLabel = () => cat.kategori ? (needsSub() ? cat.kategori + ' - ' + (cat.sub || '…') : cat.kategori) : '';
 
-  function makeChips(container, items, current, onPick) {
-    container.textContent = '';
-    items.forEach(name => {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'chip';
-      b.setAttribute('role', 'radio');
-      b.setAttribute('aria-checked', String(name === current));
-      b.textContent = name;
-      b.addEventListener('click', () => onPick(name));
-      container.appendChild(b);
-    });
+  function fillSelect(sel, placeholder, items, current) {
+    sel.textContent = '';
+    const ph = new Option(placeholder, '');
+    ph.disabled = true;
+    sel.appendChild(ph);
+    items.forEach(name => sel.appendChild(new Option(name, name)));
+    sel.value = current || '';
+    sel.classList.toggle('chosen', !!current);
   }
 
   function renderCategory() {
-    makeChips($('catChips'), Object.keys(CATEGORIES), cat.kategori, name => {
-      if (name !== cat.kategori) cat.sub = '';
-      cat.kategori = name;
-      LS.set(K.cat, name);
-      LS.del(K.sub);
-      renderCategory();
-      if (needsSub()) $('subChips').querySelector('.chip').focus();
-    });
+    fillSelect($('selCat'), '— Pilih kategori —', Object.keys(CATEGORIES), cat.kategori);
     const subs = cat.kategori ? CATEGORIES[cat.kategori] : [];
     $('subWrap').classList.toggle('hidden', !subs.length);
     if (subs.length) {
       $('hSub').textContent = 'Sub-kategori ' + cat.kategori;
-      makeChips($('subChips'), subs, cat.sub, name => {
-        cat.sub = name;
-        LS.set(K.sub, name);
-        renderCategory();
-      });
+      fillSelect($('selSub'), '— Pilih sub-kategori —', subs, cat.sub);
     }
     const hint = $('catHint');
     if (categoryReady()) {
@@ -325,7 +309,7 @@
   async function callScript(payload, signal) {
     const url = getUrl();
     const pin = getPin();
-    if (!url || !pin) throw new AppError('config', 'Alamat Apps Script atau PIN belum diisi. Buka Pengaturan.');
+    if (!url || !pin) throw new AppError('config', 'Alamat Apps Script atau PIN belum diisi di app.js.');
     let res;
     try {
       res = await fetch(url, {
@@ -348,13 +332,16 @@
     }
     if (!res.ok) {
       if (res.status === 429) throw new AppError('quota', 'Terlalu banyak permintaan ke Apps Script. Tunggu sebentar lalu coba lagi.');
-      throw new AppError('http', 'Apps Script membalas dengan kode ' + res.status + '. Periksa alamat Web App di Pengaturan.');
+      throw new AppError('http', 'Apps Script membalas dengan kode ' + res.status + '. Periksa alamat Web App di app.js.');
     }
     const text = await res.text();
     let j;
     try { j = JSON.parse(text); }
     catch { throw new AppError('config', 'Balasan Apps Script bukan data yang diharapkan. Pastikan alamat Web App benar (berakhiran /exec) dan akses diatur ke "Anyone".'); }
-    if (!j.ok) throw new AppError(j.error || 'server', j.message || 'Apps Script mengembalikan kesalahan.');
+    if (!j.ok) {
+      if (j.error === 'pin') throw new AppError('pin', 'PIN di app.js tidak cocok dengan properti PIN di Apps Script.');
+      throw new AppError(j.error || 'server', j.message || 'Apps Script mengembalikan kesalahan.');
+    }
     return j;
   }
 
@@ -462,74 +449,24 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  /* ---------------- Pengaturan ---------------- */
-  function refreshNotice() {
-    el.setupNotice.classList.toggle('hidden', !!(getUrl() && getPin()));
-  }
-
-  function fillSettings() {
-    el.inpUrl.value = getUrl();
-    el.inpPin.value = '';
-    const pin = getPin();
-    el.inpPin.placeholder = pin ? 'PIN tersimpan (isi untuk mengganti)' : 'PIN yang sama dengan di Apps Script';
-    el.pinState.textContent = LS.get(K.pin) ? 'PIN tersimpan di HP ini.' : (DEFAULT_PIN ? 'Memakai PIN yang tertanam di aplikasi.' : 'Belum ada PIN tersimpan.');
-  }
-
-  function validUrl(u) { return /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec\/?$/.test(u); }
-
-  function saveSettings() {
-    const u = el.inpUrl.value.trim();
-    if (u && !validUrl(u)) {
-      setMsg(el.setStatus, 'Alamat tidak sesuai. Harus berbentuk https://script.google.com/macros/s/.../exec', 'err');
-      return false;
-    }
-    if (u) LS.set(K.url, u); else LS.del(K.url);
-    const p = el.inpPin.value;
-    if (p) LS.set(K.pin, p);
-    fillSettings();
-    refreshNotice();
-    setMsg(el.setStatus, 'Pengaturan disimpan.', 'ok');
-    return true;
-  }
-
-  async function testConnection() {
-    if ((el.inpUrl.value.trim() !== getUrl() || el.inpPin.value) && !saveSettings()) return;
-    setMsg(el.setStatus, 'Menghubungi Apps Script…', 'info', true);
-    try {
-      const r = await callScript({ action: 'ping' });
-      setMsg(el.setStatus, 'Terhubung. PIN benar dan Sheet siap dipakai.', 'ok');
-      showSheetLink(r.sheetUrl);
-    } catch (e) {
-      setMsg(el.setStatus, e instanceof AppError ? e.message : 'Terjadi kesalahan tak terduga.', 'err');
-    }
-  }
-
-  function forget() {
-    if (!confirm('Hapus alamat Apps Script dan PIN dari HP ini?')) return;
-    LS.del(K.url); LS.del(K.pin);
-    fillSettings();
-    refreshNotice();
-    setMsg(el.setStatus, 'Data dihapus dari HP ini.', 'ok');
-  }
-
-  function openSettings() {
-    if (state.stream) stopCamera();
-    fillSettings();
-    setMsg(el.setStatus, '', 'info');
-    el.viewMain.classList.add('hidden');
-    el.viewSettings.classList.remove('hidden');
-    window.scrollTo(0, 0);
-    $('hSet').focus();
-  }
-
-  function closeSettings() {
-    el.viewSettings.classList.add('hidden');
-    el.viewMain.classList.remove('hidden');
-    refreshNotice();
-    $('btnOpenSettings').focus();
-  }
-
   /* ---------------- Event ---------------- */
+  $('selCat').addEventListener('change', e => {
+    const name = e.target.value;
+    if (!CATEGORIES[name]) return;
+    if (name !== cat.kategori) cat.sub = '';
+    cat.kategori = name;
+    LS.set(K.cat, name);
+    LS.del(K.sub);
+    renderCategory();
+    if (needsSub()) $('selSub').focus();
+  });
+  $('selSub').addEventListener('change', e => {
+    const name = e.target.value;
+    if (!cat.kategori || !CATEGORIES[cat.kategori].includes(name)) return;
+    cat.sub = name;
+    LS.set(K.sub, name);
+    renderCategory();
+  });
   el.slots.addEventListener('click', e => {
     const b = e.target.closest('.slot');
     if (b) setActive(b.dataset.side);
@@ -549,11 +486,6 @@
   el.btnStop.addEventListener('click', () => { if (state.readCtrl) state.readCtrl.abort(); });
   el.btnSend.addEventListener('click', doSend);
   $('btnNew').addEventListener('click', newCard);
-  $('btnOpenSettings').addEventListener('click', openSettings);
-  $('btnCloseSettings').addEventListener('click', closeSettings);
-  $('btnSaveSettings').addEventListener('click', saveSettings);
-  $('btnTest').addEventListener('click', testConnection);
-  $('btnForget').addEventListener('click', forget);
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && state.stream) { stopCamera(); setStatus('Kamera ditutup karena aplikasi ditinggalkan.', 'info'); }
   });
@@ -562,5 +494,4 @@
   renderCategory();
   drawSlot('depan'); drawSlot('belakang');
   setActive('depan');
-  refreshNotice();
 })();
