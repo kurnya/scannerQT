@@ -227,7 +227,8 @@
     return new Promise((resolve, reject) => {
       const c = document.createElement('canvas');
       renderTo(c, s.source, s.rotation, 1600);
-      const dataUrl = c.toDataURL('image/jpeg', 0.88);
+      // Kualitas 0.8: file jauh lebih kecil (unggah lebih cepat), teks tetap tajam
+      const dataUrl = c.toDataURL('image/jpeg', 0.8);
       if (!dataUrl.startsWith('data:image/jpeg')) { reject(new AppError('image', 'Gagal menyiapkan gambar.')); return; }
       resolve({ side, mimeType: 'image/jpeg', data: dataUrl.slice(dataUrl.indexOf(',') + 1) });
     });
@@ -363,12 +364,19 @@
     el.btnStop.classList.remove('hidden');
     updateButtons();
     setStatus('Menyiapkan foto…', 'info', true);
+    const t0 = performance.now();
+    const secs = () => ((performance.now() - t0) / 1000).toFixed(1);
+    let ticker = null;
     try {
       const sides = ['depan', 'belakang'].filter(s => state.sides[s]);
       const images = [];
       for (const s of sides) images.push(await exportSide(s));
-      setStatus('Membaca kartu lewat Gemini… (bisa 5–30 detik)', 'info', true);
+      const kb = Math.round(images.reduce((n, im) => n + im.data.length * 0.75, 0) / 1024);
+      const tick = () => setStatus('Membaca kartu lewat Gemini… ' + Math.floor((performance.now() - t0) / 1000) + ' dtk (foto ' + kb + ' KB)', 'info', true);
+      tick();
+      ticker = setInterval(tick, 1000);
       const r = await callScript({ action: 'read', images }, ctrl.signal);
+      clearInterval(ticker); ticker = null;
       if (r.empty) {
         setStatus('Tidak ada teks kartu terdeteksi. Coba foto ulang lebih dekat dan terang.', 'info');
         return;
@@ -377,7 +385,8 @@
       state.lastSentSig = null;
       setSend('', 'info');
       const missing = sides.length < 2 ? ' Hanya satu sisi yang dibaca; lengkapi kolom yang kosong bila perlu.' : '';
-      const via = r.via ? ' (' + r.via + ')' : '';
+      const info = [r.via, r.geminiMs ? 'Gemini ' + (r.geminiMs / 1000).toFixed(1) + ' dtk' : '', 'total ' + secs() + ' dtk'].filter(Boolean);
+      const via = ' (' + info.join(', ') + ')';
       setStatus('Selesai' + via + '. Periksa dan perbaiki hasil di bawah, lalu kirim.' + missing, 'ok');
       $('hRes').scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (e) {
@@ -385,6 +394,7 @@
       else if (e instanceof AppError) setStatus(e.message, 'err');
       else setStatus('Terjadi kesalahan tak terduga. Coba lagi.', 'err');
     } finally {
+      if (ticker) clearInterval(ticker);
       state.readCtrl = null;
       el.btnReadLabel.textContent = 'Baca kartu';
       el.btnRead.removeAttribute('aria-busy');
