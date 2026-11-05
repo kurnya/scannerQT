@@ -4,11 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#F7F6F1" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#151512" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#E9ECE6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14181D" media="(prefers-color-scheme: dark)">
 <meta name="referrer" content="no-referrer">
 <title>Kartu ke Sheet</title>
-<link rel="stylesheet" href="style.css?v=202611050939">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,600;0,800;1,400&display=swap">
+<link rel="stylesheet" href="style.css?v=202611051230">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -27,14 +30,17 @@
 </svg>
 
 <div class="wrap">
-  <!-- ============ HALAMAN UTAMA ============ -->
   <main id="viewMain">
     <header class="top">
-      <h1><span class="dot" aria-hidden="true"></span>Kartu ke Sheet</h1>
+      <span class="mark" aria-hidden="true"></span>
+      <div>
+        <h1>Kartu ke Sheet</h1>
+        <p class="lede">Foto kedua sisi kartu, periksa, lalu simpan ke Google Sheet.</p>
+      </div>
     </header>
 
-    <section class="card" aria-labelledby="hCat" id="catCard">
-      <h2 id="hCat"><label for="selCat" style="margin:0">1. Kategori kartu</label></h2>
+    <section class="step" aria-labelledby="hCat" id="catCard">
+      <h2 id="hCat"><span class="step-n" aria-hidden="true">1</span><label for="selCat">Kategori kartu</label></h2>
       <select id="selCat"></select>
       <div id="subWrap" class="hidden">
         <label for="selSub" class="sub-title" id="hSub">Sub-kategori Healing</label>
@@ -43,36 +49,35 @@
       <p class="hint" id="catHint" aria-live="polite">Pilih kategori sebelum memotret.</p>
     </section>
 
-    <section class="card" aria-labelledby="hImg">
-      <h2 id="hImg">2. Foto kartu</h2>
+    <section class="step" aria-labelledby="hImg" id="stepImg">
+      <h2 id="hImg"><span class="step-n" aria-hidden="true">2</span>Foto kartu</h2>
 
-      <!-- Dua slot: depan & belakang -->
       <div class="slots" id="slots" role="group" aria-label="Pilih sisi kartu">
         <button type="button" class="slot active" data-side="depan" aria-pressed="true">
-          <span class="slot-label">Depan</span>
-          <span class="finder small">
-            <span class="br1"></span><span class="br2"></span>
+          <span class="slot-label">Depan <span class="ready">siap</span></span>
+          <span class="thumb">
             <canvas class="hidden" aria-hidden="true"></canvas>
-            <span class="empty">Surah dan terjemahan</span>
+            <span class="empty"><span class="ghost-card" aria-hidden="true"></span>Surah dan terjemahan</span>
           </span>
         </button>
         <button type="button" class="slot" data-side="belakang" aria-pressed="false">
-          <span class="slot-label">Belakang</span>
-          <span class="finder small">
-            <span class="br1"></span><span class="br2"></span>
+          <span class="slot-label">Belakang <span class="ready">siap</span></span>
+          <span class="thumb">
             <canvas class="hidden" aria-hidden="true"></canvas>
-            <span class="empty">Insight dan What to do</span>
+            <span class="empty"><span class="ghost-card" aria-hidden="true"></span>Insight dan What to do</span>
           </span>
         </button>
       </div>
 
-      <!-- Kamera langsung -->
       <div id="camView" class="hidden">
         <p class="cam-title" id="camTitle" aria-live="polite">Memotret sisi depan</p>
-        <div class="finder">
-          <span class="br1"></span><span class="br2"></span>
+        <div class="viewfinder" id="finder">
           <video id="video" playsinline muted autoplay aria-label="Pratinjau kamera langsung"></video>
+          <span class="guide" id="guide" aria-hidden="true"></span>
+          <span class="flash" id="flash" aria-hidden="true"></span>
+          <span class="snap-toast" id="snapToast" aria-hidden="true"></span>
         </div>
+        <p class="hint cam-hint">Letakkan kartu tegak, lalu dekatkan HP sampai kartu mengisi garis kuning.</p>
         <div class="toolbar">
           <button type="button" class="ghost" id="btnCamCancel"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg>Selesai</button>
           <span class="spacer"></span>
@@ -81,9 +86,9 @@
       </div>
 
       <div id="slotTools">
-        <p class="hint" id="activeHint">Sisi aktif: <strong id="activeName">Depan</strong>. Ketuk kotak untuk mengganti sisi.</p>
+        <p class="hint" id="activeHint">Foto berikutnya untuk sisi <strong id="activeName">Depan</strong>. Ketuk kotak lain untuk ganti sisi.</p>
         <div class="row">
-          <button type="button" id="btnCamera"><svg class="i" aria-hidden="true"><use href="#i-cam"/></svg>Kamera</button>
+          <button type="button" class="primary" id="btnCamera"><svg class="i" aria-hidden="true"><use href="#i-cam"/></svg>Kamera</button>
           <button type="button" id="btnGallery"><svg class="i" aria-hidden="true"><use href="#i-img"/></svg>Galeri</button>
         </div>
         <div class="toolbar" id="imgBar">
@@ -95,15 +100,15 @@
       </div>
       <input type="file" id="fileInput" accept="image/*" class="sr" tabindex="-1" aria-hidden="true">
 
-      <div class="row" style="margin-top:14px">
+      <div class="row act">
         <button type="button" class="primary" id="btnRead" disabled><svg class="i" aria-hidden="true"><use href="#i-read"/></svg><span id="btnReadLabel">Baca kartu</span></button>
         <button type="button" class="hidden" id="btnStop"><svg class="i" aria-hidden="true"><use href="#i-stop"/></svg>Berhenti</button>
       </div>
       <div id="status" class="status info" role="status" aria-live="polite"></div>
     </section>
 
-    <section class="card" aria-labelledby="hRes">
-      <h2 id="hRes">3. Periksa hasil</h2>
+    <section class="step last" aria-labelledby="hRes" id="stepRes">
+      <h2 id="hRes"><span class="step-n" aria-hidden="true">3</span>Periksa hasil</h2>
       <p class="target" id="targetSheet" aria-live="polite"></p>
       <div class="grid-meta">
         <div class="field">
@@ -112,12 +117,12 @@
         </div>
         <div class="field">
           <label for="fAyat">Ayat</label>
-          <input type="text" id="fAyat" autocomplete="off">
+          <input type="text" id="fAyat" autocomplete="off" inputmode="numeric">
         </div>
       </div>
       <div class="field">
         <label for="fTerjemahan">Terjemahan</label>
-        <textarea id="fTerjemahan" dir="auto" rows="3"></textarea>
+        <textarea id="fTerjemahan" class="quote" dir="auto" rows="3"></textarea>
       </div>
       <div class="field">
         <label for="fInsight">Insight</label>
@@ -128,7 +133,7 @@
         <textarea id="fWhat" dir="auto" rows="3"></textarea>
       </div>
 
-      <div class="row">
+      <div class="row act">
         <button type="button" class="primary" id="btnSend"><svg class="i" aria-hidden="true"><use href="#i-send"/></svg><span id="btnSendLabel">Kirim ke Sheet</span></button>
         <button type="button" id="btnNew"><svg class="i" aria-hidden="true"><use href="#i-new"/></svg>Kartu baru</button>
       </div>
@@ -139,6 +144,6 @@
   </main>
 </div>
 
-<script src="app.js?v=202611050939"></script>
+<script src="app.js?v=202611051230"></script>
 </body>
 </html>

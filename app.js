@@ -104,6 +104,7 @@
     const t = $('targetSheet');
     t.textContent = '';
     if (categoryReady()) t.append('Tujuan: tab ', Object.assign(document.createElement('strong'), { textContent: sheetLabel() }));
+    updateSteps();
   }
 
   // Dipanggil sebelum memotret / mengirim. true bila kategori sudah lengkap.
@@ -289,20 +290,100 @@
     showCamera(false);
   }
 
+  // Hitung kotak pemandu (#guide) dalam koordinat piksel video.
+  // Video tampil dengan object-fit: cover, jadi perhitungkan skala dan potongan tepinya.
+  function guideCrop(v) {
+    const vw = v.videoWidth, vh = v.videoHeight;
+    const full = { x: 0, y: 0, w: vw, h: vh };
+    const box = v.getBoundingClientRect();
+    const g = $('guide').getBoundingClientRect();
+    if (!box.width || !g.width) return full;
+    const scale = Math.max(box.width / vw, box.height / vh);
+    const ox = (box.width - vw * scale) / 2, oy = (box.height - vh * scale) / 2;
+    const padX = g.width * 0.35, padY = g.height * 0.06;
+    let x0 = (g.left - box.left - padX - ox) / scale;
+    let y0 = (g.top - box.top - padY - oy) / scale;
+    let x1 = (g.right - box.left + padX - ox) / scale;
+    let y1 = (g.bottom - box.top + padY - oy) / scale;
+    x0 = Math.max(0, Math.floor(x0)); y0 = Math.max(0, Math.floor(y0));
+    x1 = Math.min(vw, Math.ceil(x1)); y1 = Math.min(vh, Math.ceil(y1));
+    if (x1 - x0 < 50 || y1 - y0 < 50) return full;
+    return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+  }
+
+  /* ---------- Umpan balik jepret: kilat, getar, bunyi, label ---------- */
+  let audioCtx = null;
+  function shutterSound() {
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      audioCtx = audioCtx || new AC();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const t = audioCtx.currentTime;
+      // Desis pendek (bunyi rana) + klik nada rendah
+      const len = Math.floor(audioCtx.sampleRate * 0.07);
+      const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+      const noise = audioCtx.createBufferSource(); noise.buffer = buf;
+      const hp = audioCtx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 1800;
+      const g1 = audioCtx.createGain(); g1.gain.value = 0.35;
+      noise.connect(hp).connect(g1).connect(audioCtx.destination);
+      noise.start(t);
+      const osc = audioCtx.createOscillator(); osc.type = 'square'; osc.frequency.setValueAtTime(220, t);
+      osc.frequency.exponentialRampToValueAtTime(90, t + 0.05);
+      const g2 = audioCtx.createGain();
+      g2.gain.setValueAtTime(0.12, t); g2.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+      osc.connect(g2).connect(audioCtx.destination);
+      osc.start(t); osc.stop(t + 0.07);
+    } catch {}
+  }
+
+  function restartAnim(node, cls) {
+    node.classList.remove(cls);
+    void node.offsetWidth; // paksa reflow agar animasi bisa diulang
+    node.classList.add(cls);
+  }
+
+  let toastTimer = null;
+  function snapFeedback(side) {
+    restartAnim($('flash'), 'on');
+    restartAnim($('guide'), 'snap');
+    shutterSound();
+    if (navigator.vibrate) { try { navigator.vibrate(35); } catch {} }
+    const toast = $('snapToast');
+    toast.textContent = SIDE_NAME[side] + ' tersimpan';
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 1300);
+    const slot = slotBtn(side);
+    restartAnim(slot, 'just-filled');
+    setTimeout(() => slot.classList.remove('just-filled'), 600);
+  }
+
   function shoot() {
     const v = el.video;
     if (!v.videoWidth) { setStatus('Kamera belum siap. Tunggu sebentar lalu jepret lagi.', 'err'); return; }
+    // Potong ke area pemandu kartu (plus sedikit ruang) agar teks kartu
+    // mengisi gambar dan file yang diunggah lebih kecil.
+    const r = guideCrop(v);
     const c = document.createElement('canvas');
-    c.width = v.videoWidth; c.height = v.videoHeight;
-    c.getContext('2d').drawImage(v, 0, 0);
+    c.width = r.w; c.height = r.h;
+    c.getContext('2d').drawImage(v, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
     const side = state.active;
     setImage(side, c);
+    snapFeedback(side);
     if (!state.sides[other(side)]) {
       setActive(other(side));
       setStatus('Sisi ' + SIDE_NAME[side].toLowerCase() + ' tersimpan. Balik kartu, lalu jepret sisi ' + SIDE_NAME[other(side)].toLowerCase() + '.', 'ok');
     } else {
-      stopCamera();
-      setStatus('Kedua sisi siap. Periksa fotonya, lalu tekan "Baca kartu".', 'info');
+      // Beri jeda singkat agar kilat & label "tersimpan" sempat terlihat
+      $('btnShoot').disabled = true;
+      setTimeout(() => {
+        $('btnShoot').disabled = false;
+        stopCamera();
+        setStatus('Kedua sisi siap. Periksa fotonya, lalu tekan "Baca kartu".', 'info');
+      }, 700);
     }
   }
 
@@ -351,8 +432,19 @@
 
   function updateButtons() {
     el.btnRead.disabled = !hasAnyImage() || !!state.readCtrl || !!state.stream;
-    el.imgBar.querySelectorAll('button').forEach(b => { b.disabled = !state.sides[state.active]; });
+    // Tombol putar/hapus hanya tampil bila sisi aktif sudah punya foto
+    el.imgBar.classList.toggle('hidden', !state.sides[state.active]);
+    // Kamera jadi tombol utama sampai kedua sisi terisi; setelah itu giliran "Baca kartu"
+    $('btnCamera').classList.toggle('primary', !(state.sides.depan && state.sides.belakang));
     el.btnSend.disabled = state.sending;
+    updateSteps();
+  }
+
+  // Nomor langkah terisi kuning bila langkah itu sudah selesai
+  function updateSteps() {
+    $('catCard').classList.toggle('done', categoryReady());
+    $('stepImg').classList.toggle('done', !!(state.sides.depan && state.sides.belakang));
+    $('stepRes').classList.toggle('done', !!state.lastSentSig);
   }
 
   async function doRead() {

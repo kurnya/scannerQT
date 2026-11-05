@@ -1,155 +1,231 @@
+/* Warna diambil dari kartu The Living Quran: kuning kunyit, tinta, zaitun */
 :root {
-  --bg: #F7F6F1;
-  --surface: #FFFFFF;
-  --surface-2: #EFEDE5;
-  --text: #1C1B17;
-  --muted: #5E5B52;
-  --border: #D9D6CB;
-  --accent: #D4A82A;
-  --accent-ink: #1C1B17;
-  --accent-soft: #F6EDCF;
-  --danger: #B3261E;
-  --danger-soft: #FBE9E7;
-  --ok: #2E6B34;
-  --focus: #8A6A0F;
-  --radius: 12px;
+  --paper: #E9ECE6;     /* latar */
+  --sheet: #F8F9F6;     /* bidang isian */
+  --ink: #1D252E;       /* teks utama */
+  --olive: #625E48;     /* teks pendamping */
+  --line: #C7CBC1;      /* garis */
+  --kunyit: #D6B43C;    /* warna kartu: aksi & status aktif */
+  --kunyit-ink: #1D252E;
+  --kunyit-wash: #EFE3B2;
+  --danger: #A3261E;
+  --danger-wash: #F6E1DE;
+  --ok: #2F6338;
+  --focus: #1D252E;
+  --rail: #C7CBC1;
+  --viewfinder: #0F1317;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #151512;
-    --surface: #1F1E1A;
-    --surface-2: #2A2924;
-    --text: #EDEBE3;
-    --muted: #A9A699;
-    --border: #3A3832;
-    --accent: #E3BC45;
-    --accent-ink: #151512;
-    --accent-soft: #3A3220;
-    --danger: #F2B8B5;
-    --danger-soft: #3B1F1D;
-    --ok: #9DD3A2;
-    --focus: #E3BC45;
+    --paper: #14181D;
+    --sheet: #1C2128;
+    --ink: #E6E8E2;
+    --olive: #ABA78E;
+    --line: #353C45;
+    --kunyit: #E2C14E;
+    --kunyit-ink: #14181D;
+    --kunyit-wash: #3A3320;
+    --danger: #F0B4AE;
+    --danger-wash: #3A1E1C;
+    --ok: #9CCDA3;
+    --focus: #E2C14E;
+    --rail: #353C45;
+    --viewfinder: #090B0D;
   }
 }
+
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Naskh Arabic", sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font: 16px/1.5 "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   overflow-x: hidden;
 }
 .wrap {
-  max-width: 560px;
+  max-width: 540px;
   margin: 0 auto;
-  padding-top: max(12px, env(safe-area-inset-top));
-  padding-bottom: max(24px, env(safe-area-inset-bottom));
+  padding-top: max(20px, env(safe-area-inset-top));
+  padding-bottom: max(28px, env(safe-area-inset-bottom));
   padding-left: max(16px, env(safe-area-inset-left));
   padding-right: max(16px, env(safe-area-inset-right));
 }
-header.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
-h1 { font-size: 1.25rem; margin: 0; letter-spacing: -0.01em; }
-h1 .dot { display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: var(--accent); margin-right: 8px; vertical-align: 2px; }
-h2 { font-size: 1.05rem; margin: 0 0 10px; }
-section.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; }
 
+/* ---------- Kepala ---------- */
+header.top { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 22px; }
+/* Tanda berbentuk pembatas buku, sesuai bentuk kartu */
+.mark {
+  flex: none; width: 14px; height: 46px; margin-top: 4px;
+  background: var(--kunyit); border-radius: 2px;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 84%, 0 100%);
+}
+h1 { font-size: 1.5rem; line-height: 1.15; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
+.lede { margin: 4px 0 0; color: var(--olive); font-size: .95rem; }
+
+/* ---------- Langkah (rel vertikal) ---------- */
+.step { padding: 20px 0 28px; border-top: 1.5px solid var(--line); }
+.step.done { border-top-color: var(--kunyit); }
+.step-n {
+  flex: none;
+  width: 32px; height: 32px; border-radius: 50%;
+  display: inline-grid; place-items: center;
+  font-weight: 800; font-size: .95rem;
+  background: var(--paper); color: var(--olive);
+  border: 2px solid var(--line);
+  transition: background-color .2s, border-color .2s, color .2s;
+}
+.step.done .step-n { background: var(--kunyit); border-color: var(--kunyit); color: var(--kunyit-ink); }
+h2 { display: flex; align-items: center; gap: 12px; font-size: 1.2rem; font-weight: 800; letter-spacing: -0.01em; line-height: 1.2; margin: 0 0 14px; }
+h2 label { font: inherit; margin: 0; }
+#catCard.need .step-n { border-color: var(--danger); color: var(--danger); }
+#catCard.need select:not(.chosen) { border-color: var(--danger); }
+
+/* ---------- Tombol ---------- */
 button {
   font: inherit; font-weight: 600;
   min-height: 48px; padding: 10px 16px;
-  border-radius: 10px; border: 1px solid var(--border);
-  background: var(--surface-2); color: var(--text);
+  border-radius: 10px; border: 1.5px solid var(--line);
+  background: var(--sheet); color: var(--ink);
   cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   touch-action: manipulation;
 }
-button:disabled { opacity: .5; cursor: not-allowed; }
-button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-button.danger { color: var(--danger); background: var(--danger-soft); border-color: transparent; }
-button.ghost { background: transparent; }
+button:active:not(:disabled) { transform: translateY(1px); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button.primary { background: var(--kunyit); color: var(--kunyit-ink); border-color: var(--kunyit); font-weight: 800; }
+button.danger { color: var(--danger); background: transparent; border-color: transparent; }
+button.ghost { background: transparent; border-color: transparent; }
 button.icon { width: 48px; padding: 0; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 svg.i { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .row { display: flex; gap: 8px; flex-wrap: wrap; }
 .row > * { flex: 1 1 0; min-width: 0; }
-label { display: block; font-weight: 600; margin-bottom: 6px; }
-.field { margin-bottom: 14px; min-width: 0; }
-input[type="text"], input[type="url"], input[type="password"], textarea {
-  font: inherit; color: var(--text); background: var(--surface);
-  border: 1px solid var(--border); border-radius: 10px;
+.row.act { margin-top: 16px; }
+.row.act > button { white-space: nowrap; padding-left: 12px; padding-right: 12px; }
+.row.act > .primary { flex-grow: 1.5; }
+
+/* ---------- Isian ---------- */
+label { display: block; font-weight: 600; font-size: .95rem; margin-bottom: 6px; }
+.field { margin-bottom: 16px; min-width: 0; }
+input[type="text"], textarea, select {
+  font: inherit; color: var(--ink); background-color: var(--sheet);
+  border: 1.5px solid var(--line); border-radius: 8px;
   width: 100%; min-height: 48px; padding: 10px 12px;
 }
-textarea { resize: vertical; line-height: 1.55; min-height: 96px; }
-.hint { color: var(--muted); font-size: .9rem; margin: 6px 0 0; }
-.hint a { color: var(--text); text-decoration-color: var(--accent); text-underline-offset: 3px; font-weight: 600; }
-code { font-size: .88em; background: var(--surface-2); padding: 1px 5px; border-radius: 4px; word-break: break-all; }
-.hidden { display: none !important; }
-.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-
-/* Metadata: Surah | Ayat */
-.grid-meta { display: grid; grid-template-columns: 1fr 96px; gap: 8px; }
-
-/* Bingkai bidik dengan sudut bracket */
-.finder {
-  position: relative; background: #0E0E0C; border-radius: var(--radius);
-  aspect-ratio: 3 / 4; max-height: 62vh; width: 100%; overflow: hidden;
-  display: flex; align-items: center; justify-content: center;
-}
-.finder::before, .finder::after, .finder > .br1, .finder > .br2 {
-  content: ""; position: absolute; width: 28px; height: 28px; border: 3px solid var(--accent); pointer-events: none; z-index: 2;
-}
-.finder::before { top: 12px; left: 12px; border-right: 0; border-bottom: 0; border-top-left-radius: 6px; }
-.finder::after { top: 12px; right: 12px; border-left: 0; border-bottom: 0; border-top-right-radius: 6px; }
-.finder > .br1 { bottom: 12px; left: 12px; border-right: 0; border-top: 0; border-bottom-left-radius: 6px; }
-.finder > .br2 { bottom: 12px; right: 12px; border-left: 0; border-top: 0; border-bottom-right-radius: 6px; }
-.finder video { width: 100%; height: 100%; object-fit: cover; display: block; }
-.finder canvas { max-width: 100%; max-height: 100%; display: block; }
-.finder .empty { color: #B9B6AA; text-align: center; padding: 16px; font-size: .85rem; font-weight: 500; line-height: 1.35; }
-
-.finder.small { aspect-ratio: 1 / 1; }
-.finder.small::before, .finder.small::after, .finder.small > .br1, .finder.small > .br2 { width: 18px; height: 18px; }
-.finder.small::before { top: 8px; left: 8px; }
-.finder.small::after { top: 8px; right: 8px; }
-.finder.small > .br1 { bottom: 8px; left: 8px; }
-.finder.small > .br2 { bottom: 8px; right: 8px; }
-
-/* Slot depan / belakang */
-.slots { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-.slot {
-  display: flex; flex-direction: column; align-items: stretch; gap: 6px;
-  padding: 6px; background: var(--surface); border: 2px solid var(--border); border-radius: 14px;
-  min-width: 0;
-}
-.slot.active { border-color: var(--accent); background: var(--accent-soft); }
-.slot-label { text-align: left; padding: 2px 4px 0; }
-.slot.filled .slot-label::after { content: " · siap"; color: var(--ok); font-weight: 500; }
-
-/* Pilihan kategori (dropdown) */
+input[type="text"]:focus, textarea:focus, select:focus { border-color: var(--ink); outline: none; }
+textarea { resize: vertical; line-height: 1.6; min-height: 96px; }
+textarea.quote { font-style: italic; }
 select {
-  font: inherit; font-weight: 600; color: var(--text); background-color: var(--surface);
-  border: 1px solid var(--border); border-radius: 10px;
-  width: 100%; min-height: 48px; padding: 10px 40px 10px 12px;
-  appearance: none; -webkit-appearance: none; cursor: pointer;
-  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  font-weight: 600; padding-right: 40px; cursor: pointer;
+  appearance: none; -webkit-appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--olive) 50%), linear-gradient(135deg, var(--olive) 50%, transparent 50%);
   background-position: calc(100% - 20px) 50%, calc(100% - 14px) 50%;
   background-size: 6px 6px, 6px 6px; background-repeat: no-repeat;
 }
-select.chosen { border: 2px solid var(--accent); background-color: var(--accent-soft); }
-.sub-title { display: block; font-weight: 600; margin: 14px 0 6px; }
-#catCard.need { border-color: var(--danger); }
-.target { margin: -4px 0 12px; font-size: .95rem; color: var(--muted); }
-.target strong { color: var(--text); }
+select.chosen { border-color: var(--kunyit); box-shadow: inset 4px 0 0 var(--kunyit); }
+.sub-title { margin: 16px 0 6px; }
+.grid-meta { display: grid; grid-template-columns: 1fr 96px; gap: 10px; }
 
-.cam-title { font-weight: 600; margin: 0 0 8px; }
+.hint { color: var(--olive); font-size: .9rem; margin: 8px 0 0; }
+.hint strong { color: var(--ink); }
+.hint a { color: var(--ink); text-decoration-color: var(--kunyit); text-decoration-thickness: 2px; text-underline-offset: 3px; font-weight: 600; }
+.target { margin: -6px 0 14px; font-size: .95rem; color: var(--olive); }
+.target strong { color: var(--ink); }
+.footnote { margin: 4px 0 0; font-size: .82rem; }
+.hidden { display: none !important; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- Slot depan / belakang ---------- */
+.slots { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+#slotTools .row { margin-top: 12px; }
+.slot {
+  display: flex; flex-direction: column; align-items: stretch; gap: 8px;
+  padding: 8px; min-width: 0;
+  background: transparent; border: 1.5px solid var(--line); border-radius: 12px;
+  font-weight: 600;
+}
+.slot.active { border-color: var(--kunyit); border-width: 2.5px; padding: 7px; background: var(--kunyit-wash); }
+.slot-label { display: flex; align-items: center; justify-content: space-between; padding: 0 2px; }
+.slot .ready { display: none; font-size: .78rem; font-weight: 800; color: var(--ok); }
+.slot.filled .ready { display: inline; }
+.thumb {
+  position: relative; aspect-ratio: 4 / 5; width: 100%;
+  border-radius: 6px; overflow: hidden; background: var(--viewfinder);
+  display: flex; align-items: center; justify-content: center;
+}
+.thumb canvas { max-width: 100%; max-height: 100%; display: block; }
+.empty {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  color: #B4B7AE; font-size: .88rem; font-weight: 600; line-height: 1.3; text-align: center; padding: 10px;
+}
+/* Siluet kartu (pembatas buku) pada slot kosong */
+.ghost-card {
+  width: 26%; aspect-ratio: 2 / 7; max-height: 64%;
+  border: 2px dashed #8C8A72; border-radius: 3px;
+}
+.slot.active .ghost-card { border-color: var(--kunyit); border-style: solid; }
+
+/* ---------- Kamera dengan pemandu kartu ---------- */
+.cam-title { font-weight: 800; margin: 0 0 10px; }
+.viewfinder {
+  position: relative; width: 100%; aspect-ratio: 3 / 4; max-height: 64vh;
+  background: var(--viewfinder); border-radius: 12px; overflow: hidden;
+}
+.viewfinder video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.guide {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  height: 88%; aspect-ratio: 2 / 7;
+  border: 3px solid var(--kunyit); border-radius: 6px;
+  box-shadow: 0 0 0 100vmax rgba(9, 11, 13, .55);
+  pointer-events: none;
+}
+.cam-hint { margin-top: 10px; }
+
+/* Umpan balik saat jepret */
+.flash {
+  position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 3;
+}
+.flash.on { animation: flash .32s ease-out; }
+@keyframes flash { 0% { opacity: .9; } 100% { opacity: 0; } }
+.guide.snap { animation: guide-snap .4s ease-out; }
+@keyframes guide-snap {
+  0% { border-color: #fff; transform: translate(-50%, -50%) scale(.96); }
+  100% { border-color: var(--kunyit); transform: translate(-50%, -50%) scale(1); }
+}
+.snap-toast {
+  position: absolute; left: 50%; bottom: 16px; z-index: 4;
+  transform: translate(-50%, 8px); opacity: 0; pointer-events: none;
+  display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
+  padding: 8px 14px; border-radius: 999px;
+  background: var(--kunyit); color: var(--kunyit-ink); font-weight: 800; font-size: .95rem;
+  transition: opacity .2s, transform .2s;
+}
+.snap-toast::before {
+  content: ""; width: 14px; height: 8px; margin-top: -4px;
+  border: solid currentColor; border-width: 0 0 3px 3px; transform: rotate(-45deg);
+}
+.snap-toast.show { opacity: 1; transform: translate(-50%, 0); }
+#btnShoot { transition: transform .08s; }
+#btnShoot:active { transform: scale(.94); }
+.slot.just-filled .thumb { animation: pop .45s ease-out; }
+@keyframes pop { 0% { transform: scale(.9); } 60% { transform: scale(1.03); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .flash.on { animation-duration: .15s; }
+  .guide.snap, .slot.just-filled .thumb { animation: none; }
+  .snap-toast { transition: none; }
+}
 .toolbar { display: flex; gap: 8px; margin-top: 10px; align-items: center; }
 .toolbar .spacer { flex: 1; }
 
-/* Status */
-.status { min-height: 1.5em; margin: 10px 0 0; font-size: .95rem; }
+/* ---------- Status ---------- */
+.status { min-height: 1.5em; margin: 12px 0 0; font-size: .95rem; }
 .status:empty { margin: 0; min-height: 0; }
-.status.err { color: var(--danger); background: var(--danger-soft); padding: 10px 12px; border-radius: 10px; }
+.status.err { color: var(--danger); background: var(--danger-wash); padding: 10px 12px; border-radius: 8px; }
 .status.ok { color: var(--ok); }
-.status.info { color: var(--muted); }
+.status.info { color: var(--olive); }
 .spinner { display: inline-block; vertical-align: -3px; margin-right: 8px; width: 18px; height: 18px; border: 3px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2.4s; } }
-.warn { background: var(--accent-soft); border-left: 4px solid var(--accent); padding: 10px 12px; border-radius: 8px; font-size: .95rem; }
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation-duration: 2.4s; }
+  .step-n { transition: none; }
+}
