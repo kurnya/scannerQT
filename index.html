@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#F7F6F1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#151512" media="(prefers-color-scheme: dark)">
+<meta name="referrer" content="no-referrer">
+<title>Kartu ke Sheet</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-cam" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h2l2-2h6l2 2h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="4"/></symbol>
+  <symbol id="i-img" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></symbol>
+  <symbol id="i-rl" viewBox="0 0 24 24"><path d="M3 4v6h6"/><path d="M3.5 10A9 9 0 1 1 6 18"/></symbol>
+  <symbol id="i-rr" viewBox="0 0 24 24"><path d="M21 4v6h-6"/><path d="M20.5 10A9 9 0 1 0 18 18"/></symbol>
+  <symbol id="i-del" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></symbol>
+  <symbol id="i-shot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4" fill="currentColor"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-read" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h13"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></symbol>
+  <symbol id="i-new" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-sheet" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 3v18"/></symbol>
+</svg>
+
+<div class="wrap">
+  <!-- ============ HALAMAN UTAMA ============ -->
+  <main id="viewMain">
+    <header class="top">
+      <h1><span class="dot" aria-hidden="true"></span>Kartu ke Sheet</h1>
+      <button type="button" class="ghost" id="btnOpenSettings">
+        <svg class="i" aria-hidden="true"><use href="#i-gear"/></svg>Pengaturan
+      </button>
+    </header>
+
+    <p id="setupNotice" class="warn hidden" role="note">Aplikasi belum terhubung ke Google Sheet. Buka <strong>Pengaturan</strong> untuk mengisi alamat Apps Script dan PIN.</p>
+
+    <section class="card" aria-labelledby="hImg">
+      <h2 id="hImg">1. Foto kartu</h2>
+
+      <!-- Dua slot: depan & belakang -->
+      <div class="slots" id="slots" role="group" aria-label="Pilih sisi kartu">
+        <button type="button" class="slot active" data-side="depan" aria-pressed="true">
+          <span class="slot-label">Depan</span>
+          <span class="finder small">
+            <span class="br1"></span><span class="br2"></span>
+            <canvas class="hidden" aria-hidden="true"></canvas>
+            <span class="empty">Surah dan terjemahan</span>
+          </span>
+        </button>
+        <button type="button" class="slot" data-side="belakang" aria-pressed="false">
+          <span class="slot-label">Belakang</span>
+          <span class="finder small">
+            <span class="br1"></span><span class="br2"></span>
+            <canvas class="hidden" aria-hidden="true"></canvas>
+            <span class="empty">Insight dan What to do</span>
+          </span>
+        </button>
+      </div>
+
+      <!-- Kamera langsung -->
+      <div id="camView" class="hidden">
+        <p class="cam-title" id="camTitle" aria-live="polite">Memotret sisi depan</p>
+        <div class="finder">
+          <span class="br1"></span><span class="br2"></span>
+          <video id="video" playsinline muted autoplay aria-label="Pratinjau kamera langsung"></video>
+        </div>
+        <div class="toolbar">
+          <button type="button" class="ghost" id="btnCamCancel"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg>Selesai</button>
+          <span class="spacer"></span>
+          <button type="button" class="primary" id="btnShoot"><svg class="i" aria-hidden="true"><use href="#i-shot"/></svg>Jepret</button>
+        </div>
+      </div>
+
+      <div id="slotTools">
+        <p class="hint" id="activeHint">Sisi aktif: <strong id="activeName">Depan</strong>. Ketuk kotak untuk mengganti sisi.</p>
+        <div class="row">
+          <button type="button" id="btnCamera"><svg class="i" aria-hidden="true"><use href="#i-cam"/></svg>Kamera</button>
+          <button type="button" id="btnGallery"><svg class="i" aria-hidden="true"><use href="#i-img"/></svg>Galeri</button>
+        </div>
+        <div class="toolbar" id="imgBar">
+          <button type="button" class="icon" id="btnRotL" aria-label="Putar foto sisi aktif ke kiri"><svg class="i" aria-hidden="true"><use href="#i-rl"/></svg></button>
+          <button type="button" class="icon" id="btnRotR" aria-label="Putar foto sisi aktif ke kanan"><svg class="i" aria-hidden="true"><use href="#i-rr"/></svg></button>
+          <span class="spacer"></span>
+          <button type="button" class="danger" id="btnClear"><svg class="i" aria-hidden="true"><use href="#i-del"/></svg>Hapus foto</button>
+        </div>
+      </div>
+      <input type="file" id="fileInput" accept="image/*" class="sr" tabindex="-1" aria-hidden="true">
+
+      <div class="row" style="margin-top:14px">
+        <button type="button" class="primary" id="btnRead" disabled><svg class="i" aria-hidden="true"><use href="#i-read"/></svg><span id="btnReadLabel">Baca kartu</span></button>
+        <button type="button" class="hidden" id="btnStop"><svg class="i" aria-hidden="true"><use href="#i-stop"/></svg>Berhenti</button>
+      </div>
+      <div id="status" class="status info" role="status" aria-live="polite"></div>
+    </section>
+
+    <section class="card" aria-labelledby="hRes">
+      <h2 id="hRes">2. Periksa hasil</h2>
+      <div class="grid-meta">
+        <div class="field">
+          <label for="fNo">No. Kartu</label>
+          <input type="text" id="fNo" inputmode="numeric" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="fSurah">Nama Surah</label>
+          <input type="text" id="fSurah" autocomplete="off" dir="auto">
+        </div>
+        <div class="field">
+          <label for="fAyat">Ayat</label>
+          <input type="text" id="fAyat" autocomplete="off">
+        </div>
+      </div>
+      <div class="field">
+        <label for="fTerjemahan">Terjemahan</label>
+        <textarea id="fTerjemahan" dir="auto" rows="3"></textarea>
+      </div>
+      <div class="field">
+        <label for="fInsight">Insight</label>
+        <textarea id="fInsight" dir="auto" rows="3"></textarea>
+      </div>
+      <div class="field">
+        <label for="fWhat">What To Do</label>
+        <textarea id="fWhat" dir="auto" rows="3"></textarea>
+      </div>
+
+      <div class="row">
+        <button type="button" class="primary" id="btnSend"><svg class="i" aria-hidden="true"><use href="#i-send"/></svg><span id="btnSendLabel">Kirim ke Sheet</span></button>
+        <button type="button" id="btnNew"><svg class="i" aria-hidden="true"><use href="#i-new"/></svg>Kartu baru</button>
+      </div>
+      <div id="sendStatus" class="status info" role="status" aria-live="polite"></div>
+      <p class="hint"><a id="sheetLink" class="hidden" href="#" target="_blank" rel="noopener noreferrer"><svg class="i" aria-hidden="true" style="vertical-align:-4px"><use href="#i-sheet"/></svg> Buka Google Sheet</a></p>
+    </section>
+  </main>
+
+  <!-- ============ PENGATURAN ============ -->
+  <div id="viewSettings" class="hidden" role="region" aria-labelledby="hSet">
+    <header class="top">
+      <button type="button" class="ghost" id="btnCloseSettings"><svg class="i" aria-hidden="true"><use href="#i-back"/></svg>Kembali</button>
+      <h1 id="hSet" tabindex="-1">Pengaturan</h1>
+    </header>
+
+    <section class="card">
+      <div class="field">
+        <label for="inpUrl">Alamat Web App Apps Script</label>
+        <input type="url" id="inpUrl" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://script.google.com/macros/s/.../exec">
+        <p class="hint" id="urlHint">Alamat yang berakhiran <code>/exec</code>, didapat saat Deploy di Apps Script.</p>
+      </div>
+      <div class="field">
+        <label for="inpPin">PIN</label>
+        <input type="password" id="inpPin" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="PIN yang sama dengan di Apps Script">
+        <p class="hint" id="pinState">Belum ada PIN tersimpan.</p>
+      </div>
+      <div class="row">
+        <button type="button" class="primary" id="btnSaveSettings">Simpan</button>
+        <button type="button" id="btnTest">Tes koneksi</button>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button type="button" class="danger" id="btnForget">Hapus data dari HP ini</button>
+      </div>
+      <div id="setStatus" class="status info" role="status" aria-live="polite"></div>
+    </section>
+
+    <section class="card">
+      <p class="hint" style="margin-top:0">API key Gemini tidak disimpan di HP maupun di situs ini. Key hanya ada di Script Properties Apps Script milik Anda. Langkah pemasangan ada di <code>README.md</code>.</p>
+      <p class="warn" style="margin-bottom:0"><strong>Perhatian:</strong> foto yang dikirim ke layanan gratis bisa dipakai penyedia untuk melatih model. Jangan gunakan untuk dokumen pribadi atau sensitif.</p>
+    </section>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
