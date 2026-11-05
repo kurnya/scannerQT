@@ -40,8 +40,18 @@
 
     <p id="setupNotice" class="warn hidden" role="note">Aplikasi belum terhubung ke Google Sheet. Buka <strong>Pengaturan</strong> untuk mengisi alamat Apps Script dan PIN.</p>
 
+    <section class="card" aria-labelledby="hCat" id="catCard">
+      <h2 id="hCat">1. Kategori kartu</h2>
+      <div class="chips" id="catChips" role="radiogroup" aria-labelledby="hCat"></div>
+      <div id="subWrap" class="hidden">
+        <p class="sub-title" id="hSub">Sub-kategori Healing</p>
+        <div class="chips" id="subChips" role="radiogroup" aria-labelledby="hSub"></div>
+      </div>
+      <p class="hint" id="catHint" aria-live="polite">Pilih kategori sebelum memotret.</p>
+    </section>
+
     <section class="card" aria-labelledby="hImg">
-      <h2 id="hImg">1. Foto kartu</h2>
+      <h2 id="hImg">2. Foto kartu</h2>
 
       <!-- Dua slot: depan & belakang -->
       <div class="slots" id="slots" role="group" aria-label="Pilih sisi kartu">
@@ -100,12 +110,9 @@
     </section>
 
     <section class="card" aria-labelledby="hRes">
-      <h2 id="hRes">2. Periksa hasil</h2>
+      <h2 id="hRes">3. Periksa hasil</h2>
+      <p class="target" id="targetSheet" aria-live="polite"></p>
       <div class="grid-meta">
-        <div class="field">
-          <label for="fNo">No. Kartu</label>
-          <input type="text" id="fNo" inputmode="numeric" autocomplete="off">
-        </div>
         <div class="field">
           <label for="fSurah">Nama Surah</label>
           <input type="text" id="fSurah" autocomplete="off" dir="auto">

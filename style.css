@@ -85,8 +85,8 @@ code { font-size: .88em; background: var(--surface-2); padding: 1px 5px; border-
 .hidden { display: none !important; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-/* Metadata: No | Surah | Ayat */
-.grid-meta { display: grid; grid-template-columns: 76px 1fr 76px; gap: 8px; }
+/* Metadata: Surah | Ayat */
+.grid-meta { display: grid; grid-template-columns: 1fr 96px; gap: 8px; }
 
 /* Bingkai bidik dengan sudut bracket */
 .finder {
@@ -122,6 +122,15 @@ code { font-size: .88em; background: var(--surface-2); padding: 1px 5px; border-
 .slot.active { border-color: var(--accent); background: var(--accent-soft); }
 .slot-label { text-align: left; padding: 2px 4px 0; }
 .slot.filled .slot-label::after { content: " · siap"; color: var(--ok); font-weight: 500; }
+
+/* Pilihan kategori */
+.chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+.chip { font-weight: 500; background: var(--surface); text-align: center; line-height: 1.25; }
+.chip[aria-checked="true"] { background: var(--accent-soft); border: 2px solid var(--accent); font-weight: 700; }
+.sub-title { font-weight: 600; margin: 14px 0 8px; }
+#catCard.need { border-color: var(--danger); }
+.target { margin: -4px 0 12px; font-size: .95rem; color: var(--muted); }
+.target strong { color: var(--text); }
 
 .cam-title { font-weight: 600; margin: 0 0 8px; }
 .toolbar { display: flex; gap: 8px; margin-top: 10px; align-items: center; }

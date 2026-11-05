@@ -10,7 +10,7 @@
    * Nilai di Pengaturan HP (bila diisi) mengalahkan nilai di sini.
    * JANGAN PERNAH menaruh API key Gemini di file ini.
    * ========================================================= */
-  const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzUjSF18OL46LjndNjq_9TAyOwHZ7ueuIBl_MK1ufuWn-vi9-2LZpsT_mRKYKfUg9AT/exec';
+  const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYcFWDCmijyVArTNXMBvRAEsPllpjQrFJtXLtBZPpEd6R-DbnavW183oWP53OpJ-Wg/exec';
   const DEFAULT_PIN = '1234';
 
   /* ---------------- Penyimpanan ---------------- */
@@ -19,9 +19,18 @@
     set(k, v) { try { localStorage.setItem(k, v); return true; } catch { return false; } },
     del(k) { try { localStorage.removeItem(k); } catch {} }
   };
-  const K = { url: 'kartu.url', pin: 'kartu.pin' };
+  const K = { url: 'kartu.url', pin: 'kartu.pin', cat: 'kartu.kategori', sub: 'kartu.sub' };
   const getUrl = () => (LS.get(K.url) || DEFAULT_SCRIPT_URL || '').trim();
   const getPin = () => LS.get(K.pin) || DEFAULT_PIN || '';
+
+  // Harus sama dengan CATEGORIES di apps-script/Code.gs
+  const CATEGORIES = {
+    'Pernikahan': [],
+    'Miracle': [],
+    'Penuntut Ilmu': [],
+    'Parenting': [],
+    'Healing': ['Bahagia', 'Takut', 'Sedih', 'Marah', 'Jenuh']
+  };
 
   class AppError extends Error {
     constructor(kind, message) { super(message); this.kind = kind; }
@@ -35,12 +44,12 @@
     slotTools: $('slotTools'), activeName: $('activeName'), imgBar: $('imgBar'),
     fileInput: $('fileInput'),
     btnRead: $('btnRead'), btnReadLabel: $('btnReadLabel'), btnStop: $('btnStop'), status: $('status'),
-    fNo: $('fNo'), fSurah: $('fSurah'), fAyat: $('fAyat'), fTerjemahan: $('fTerjemahan'), fInsight: $('fInsight'), fWhat: $('fWhat'),
+    fSurah: $('fSurah'), fAyat: $('fAyat'), fTerjemahan: $('fTerjemahan'), fInsight: $('fInsight'), fWhat: $('fWhat'),
     btnSend: $('btnSend'), btnSendLabel: $('btnSendLabel'), sendStatus: $('sendStatus'), sheetLink: $('sheetLink'),
     setupNotice: $('setupNotice'),
     inpUrl: $('inpUrl'), inpPin: $('inpPin'), pinState: $('pinState'), setStatus: $('setStatus')
   };
-  const FIELD_MAP = { noKartu: 'fNo', namaSurah: 'fSurah', ayat: 'fAyat', terjemahan: 'fTerjemahan', insight: 'fInsight', whatToDo: 'fWhat' };
+  const FIELD_MAP = { namaSurah: 'fSurah', ayat: 'fAyat', terjemahan: 'fTerjemahan', insight: 'fInsight', whatToDo: 'fWhat' };
   const SIDE_NAME = { depan: 'Depan', belakang: 'Belakang' };
 
   function setMsg(node, msg, kind, busy) {
@@ -55,6 +64,72 @@
   }
   const setStatus = (m, k, b) => setMsg(el.status, m, k, b);
   const setSend = (m, k, b) => setMsg(el.sendStatus, m, k, b);
+
+  /* ---------------- Kategori ---------------- */
+  const cat = {
+    kategori: CATEGORIES[LS.get(K.cat)] ? LS.get(K.cat) : '',
+    sub: ''
+  };
+  if (cat.kategori && CATEGORIES[cat.kategori].includes(LS.get(K.sub))) cat.sub = LS.get(K.sub);
+
+  const needsSub = () => !!cat.kategori && CATEGORIES[cat.kategori].length > 0;
+  const categoryReady = () => !!cat.kategori && (!needsSub() || !!cat.sub);
+  const sheetLabel = () => cat.kategori ? (needsSub() ? cat.kategori + ' - ' + (cat.sub || '…') : cat.kategori) : '';
+
+  function makeChips(container, items, current, onPick) {
+    container.textContent = '';
+    items.forEach(name => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip';
+      b.setAttribute('role', 'radio');
+      b.setAttribute('aria-checked', String(name === current));
+      b.textContent = name;
+      b.addEventListener('click', () => onPick(name));
+      container.appendChild(b);
+    });
+  }
+
+  function renderCategory() {
+    makeChips($('catChips'), Object.keys(CATEGORIES), cat.kategori, name => {
+      if (name !== cat.kategori) cat.sub = '';
+      cat.kategori = name;
+      LS.set(K.cat, name);
+      LS.del(K.sub);
+      renderCategory();
+      if (needsSub()) $('subChips').querySelector('.chip').focus();
+    });
+    const subs = cat.kategori ? CATEGORIES[cat.kategori] : [];
+    $('subWrap').classList.toggle('hidden', !subs.length);
+    if (subs.length) {
+      $('hSub').textContent = 'Sub-kategori ' + cat.kategori;
+      makeChips($('subChips'), subs, cat.sub, name => {
+        cat.sub = name;
+        LS.set(K.sub, name);
+        renderCategory();
+      });
+    }
+    const hint = $('catHint');
+    if (categoryReady()) {
+      hint.innerHTML = '';
+      hint.append('Disimpan ke tab ', Object.assign(document.createElement('strong'), { textContent: sheetLabel() }), '.');
+      $('catCard').classList.remove('need');
+    } else {
+      hint.textContent = needsSub() ? 'Pilih sub-kategori ' + cat.kategori + '.' : 'Pilih kategori sebelum memotret.';
+    }
+    const t = $('targetSheet');
+    t.textContent = '';
+    if (categoryReady()) t.append('Tujuan: tab ', Object.assign(document.createElement('strong'), { textContent: sheetLabel() }));
+  }
+
+  // Dipanggil sebelum memotret / mengirim. true bila kategori sudah lengkap.
+  function requireCategory(msgNode) {
+    if (categoryReady()) return true;
+    $('catCard').classList.add('need');
+    setMsg(msgNode || el.status, needsSub() ? 'Pilih sub-kategori ' + cat.kategori + ' dulu.' : 'Pilih kategori kartu dulu.', 'err');
+    $('catCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return false;
+  }
 
   /* ---------------- State ---------------- */
   const state = {
@@ -183,6 +258,7 @@
   }
 
   async function startCamera() {
+    if (!requireCategory()) return;
     if (!window.isSecureContext) {
       setStatus('Kamera hanya bisa dipakai lewat HTTPS. Buka dari alamat GitHub Pages (https://...), atau gunakan Galeri.', 'err');
       return;
@@ -342,16 +418,17 @@
     if (state.sending) return;
     const entry = collectEntry();
     if (isEntryEmpty(entry)) { setSend('Semua kolom masih kosong. Baca kartu dulu atau isi manual.', 'err'); return; }
-    const sig = JSON.stringify(entry);
+    if (!requireCategory(el.sendStatus)) return;
+    const sig = JSON.stringify([entry, cat.kategori, cat.sub]);
     if (sig === state.lastSentSig && !confirm('Data ini sudah dikirim. Kirim lagi sebagai baris baru?')) return;
     state.sending = true;
     el.btnSendLabel.textContent = 'Mengirim…';
     updateButtons();
     setSend('Menyimpan ke Google Sheet…', 'info', true);
     try {
-      const r = await callScript({ action: 'save', entry });
+      const r = await callScript({ action: 'save', entry, kategori: cat.kategori, sub: cat.sub || '' });
       state.lastSentSig = sig;
-      setSend('Tersimpan di baris ' + r.row + '. Tekan "Kartu baru" untuk kartu berikutnya.', 'ok');
+      setSend('Tersimpan di tab "' + (r.sheet || sheetLabel()) + '", baris ' + r.row + '. Tekan "Kartu baru" untuk kartu berikutnya.', 'ok');
       showSheetLink(r.sheetUrl);
     } catch (e) {
       if (e instanceof AppError) setSend(e.message, 'err');
@@ -372,7 +449,7 @@
 
   function newCard() {
     const entry = collectEntry();
-    const unsent = !isEntryEmpty(entry) && JSON.stringify(entry) !== state.lastSentSig;
+    const unsent = !isEntryEmpty(entry) && JSON.stringify([entry, cat.kategori, cat.sub]) !== state.lastSentSig;
     if (unsent && !confirm('Hasil kartu ini belum dikirim ke Sheet. Tetap mulai kartu baru?')) return;
     if (state.readCtrl) state.readCtrl.abort();
     stopCamera();
@@ -458,7 +535,10 @@
     if (b) setActive(b.dataset.side);
   });
   $('btnCamera').addEventListener('click', startCamera);
-  $('btnGallery').addEventListener('click', () => { el.fileInput.value = ''; el.fileInput.click(); });
+  $('btnGallery').addEventListener('click', () => {
+    if (!requireCategory()) return;
+    el.fileInput.value = ''; el.fileInput.click();
+  });
   el.fileInput.addEventListener('change', () => loadFile(el.fileInput.files && el.fileInput.files[0], state.active));
   $('btnShoot').addEventListener('click', shoot);
   $('btnCamCancel').addEventListener('click', () => { stopCamera(); setStatus(hasAnyImage() ? 'Kamera ditutup.' : '', 'info'); });
@@ -479,6 +559,7 @@
   });
 
   /* ---------------- Mulai ---------------- */
+  renderCategory();
   drawSlot('depan'); drawSlot('belakang');
   setActive('depan');
   refreshNotice();

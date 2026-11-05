@@ -2,7 +2,13 @@
 
 Aplikasi untuk memotret kartu renungan (sisi depan dan belakang), membaca isinya dengan Gemini, lalu menyimpannya sebagai satu baris di Google Sheet.
 
-Kolom di Sheet: **Waktu · No. Kartu · Nama Surah · Ayat · Terjemahan · Insight · What To Do**
+Sebelum memotret, pilih **kategori** kartu. Setiap kategori disimpan di tab sheet sendiri:
+
+`Pernikahan` · `Miracle` · `Penuntut Ilmu` · `Parenting` · `Healing - Bahagia` · `Healing - Takut` · `Healing - Sedih` · `Healing - Marah` · `Healing - Jenuh`
+
+Kolom di setiap tab: **Waktu · Nama Surah · Ayat · Terjemahan · Insight · What To Do**
+
+Untuk menambah atau mengubah kategori, ubah `CATEGORIES` di **dua tempat dengan isi yang sama**: `apps-script/Code.gs` dan `app.js`.
 
 ```
 HP (GitHub Pages) --foto--> Apps Script milik Anda --> Gemini
